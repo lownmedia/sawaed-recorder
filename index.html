@@ -348,7 +348,9 @@
 
   // ---------------- الإرسال ----------------
 
-  var CHUNK_SIZE = 12000;
+  // جوجل ترفض أي رابط GET أطول من حوالي 8 آلاف حرف (Bad Request) - لذلك حجم الجزء هنا صغير
+  // بما يكفي حتى بعد ترميز base64 بالرابط يبقى الطول الكلي للرابط آمنًا دائمًا
+  var CHUNK_SIZE = 2500;
   var pendingUploadId = null;
 
   function setProgress(pct, label) {
