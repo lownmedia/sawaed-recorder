@@ -255,9 +255,12 @@
   var timerStart = 0;
   var timerHandle = null;
 
+  // نرتّب الصيغ بحيث MP4/AAC لها الأولوية دائمًا - هذي الصيغة الوحيدة اللي تُسمع مباشرة بكل
+  // الأجهزة والمتصفحات بدون تحميل أو برنامج خارجي (آيفون، أندرويد، ويندوز، ماك). WebM ممتازة
+  // بالتسجيل لكن آيفون وسفاري لا يدعمانها إطلاقًا، لذلك نخليها فقط كخيار أخير لو الجهاز ما يدعم MP4
   var MIME_CANDIDATES = [
-    'audio/webm;codecs=opus', 'audio/webm',
     'audio/mp4;codecs=mp4a.40.2', 'audio/mp4',
+    'audio/webm;codecs=opus', 'audio/webm',
     'audio/ogg;codecs=opus', 'audio/ogg'
   ];
 
