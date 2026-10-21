@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>تسجيل تعليق صوتي - سواعد لون</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#324B3E;
+    --primary-dark:#263a30;
+    --secondary:#AAB379;
+    --cream1:#E7D4B5;
+    --cream2:#F6EEDF;
+    --white:#FFFFFF;
+    --danger:#b23b3b;
+    --success:#2f6b3a;
+    --success-bg:#e4efe4;
+    --text:#2b2b2b;
+    --text-muted:#6b6b6b;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--cream2); color:var(--text); font-family:'Tajawal',sans-serif; min-height:100%; }
+  body{ padding-bottom:40px; }
+  .wrap{ max-width:460px; margin:0 auto; min-height:100vh; }
+  .header{ background:linear-gradient(135deg,var(--primary),var(--primary-dark)); padding:26px 18px 22px; text-align:center; border-radius:0 0 22px 22px; color:#fff; }
+  .header .brand{ font-family:'Cairo',sans-serif; font-weight:800; font-size:17px; margin:0 0 2px; }
+  .header .sub{ font-family:'Cairo',sans-serif; font-weight:700; font-size:13.5px; color:var(--cream1); margin:0; }
+
+  .card{ background:#fff; margin:18px 16px; border-radius:18px; padding:22px 18px; box-shadow:0 2px 10px rgba(50,75,62,.1); text-align:center; }
+
+  .req-box{ background:var(--cream2); border:1.5px solid var(--cream1); border-radius:12px; padding:10px 14px; margin-bottom:18px; font-family:'Cairo',sans-serif; }
+  .req-box .rid{ font-size:11px; color:var(--text-muted); direction:ltr; text-align:center; margin-bottom:2px; }
+  .req-box .ctx{ font-size:13px; font-weight:700; color:var(--primary); }
+
+  .mic-stage{ display:flex; flex-direction:column; align-items:center; gap:14px; padding:10px 0 4px; }
+
+  .mic-btn{ width:104px; height:104px; border-radius:50%; border:none; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 16px rgba(50,75,62,.3); transition:transform .15s; }
+  .mic-btn:active{ transform:scale(.95); }
+  .mic-btn svg{ width:40px; height:40px; }
+  .mic-btn.rec{ background:var(--danger); animation:pulse 1.4s infinite; }
+  @keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(178,59,59,.45); } 70%{ box-shadow:0 0 0 18px rgba(178,59,59,0); } 100%{ box-shadow:0 0 0 0 rgba(178,59,59,0); } }
+
+  .hint{ font-size:13px; color:var(--text-muted); margin:0; }
+  .timer{ font-family:'Cairo',sans-serif; font-weight:800; font-size:22px; color:var(--primary); direction:ltr; font-variant-numeric:tabular-nums; margin:0; }
+
+  .preview-box{ width:100%; }
+  audio{ width:100%; margin-bottom:14px; }
+  textarea{ width:100%; border:1.5px solid var(--cream1); background:var(--cream2); border-radius:10px; padding:10px 12px; font-family:'Tajawal',sans-serif; font-size:13px; resize:vertical; min-height:50px; outline:none; margin-bottom:14px; }
+  textarea:focus{ border-color:var(--primary); background:#fff; }
+
+  .btn-row{ display:flex; gap:10px; }
+  .btn{ flex:1; border:none; border-radius:10px; padding:13px 10px; font-family:'Cairo',sans-serif; font-weight:800; font-size:13.5px; cursor:pointer; }
+  .btn.primary{ background:var(--primary); color:#fff; }
+  .btn.secondary{ background:var(--cream2); color:var(--primary); border:1.5px solid var(--secondary); }
+  .btn:disabled{ opacity:.55; cursor:default; }
+
+  .state{ display:none; }
+  .state.active{ display:block; }
+
+  .icon-circle{ width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+  .icon-circle.err{ background:#f2e2e2; color:var(--danger); }
+  .icon-circle.ok{ background:var(--success-bg); color:var(--success); }
+  .icon-circle svg{ width:30px; height:30px; }
+
+  .msg-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:16px; margin:0 0 8px; color:var(--text); }
+  .msg-body{ font-size:13.5px; color:var(--text-muted); line-height:1.7; margin:0 0 16px; }
+
+  .progress-track{ width:100%; height:8px; background:var(--cream2); border-radius:6px; overflow:hidden; margin-bottom:10px; }
+  .progress-fill{ height:100%; background:var(--primary); border-radius:6px; width:0%; transition:width .2s; }
+  .progress-label{ font-size:12px; color:var(--text-muted); margin:0 0 16px; direction:ltr; font-variant-numeric:tabular-nums; }
+
+  .footer-note{ text-align:center; font-size:11.5px; color:var(--text-muted); padding:10px 20px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <p class="brand">سواعد لون للصيانة العامة</p>
+    <p class="sub">تسجيل تعليق صوتي</p>
+  </div>
+
+  <div class="card">
+
+    <div id="reqBox" class="req-box" hidden>
+      <div class="rid" id="reqRid"></div>
+      <div class="ctx" id="reqCtx"></div>
+    </div>
+
+    <!-- حالة: رابط غير صحيح (فُتحت الصفحة بدون المعطيات المطلوبة) -->
+    <div class="state" id="state-invalid">
+      <div class="icon-circle err">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
+      </div>
+      <p class="msg-title">تعذر فتح صفحة التسجيل</p>
+      <p class="msg-body">هذي الصفحة تُفتح فقط من داخل نظام سواعد لون (من زر المايك بصفحة المدير أو الفني). أغلق هذه النافذة وجرّب من هناك مرة أخرى.</p>
+    </div>
+
+    <!-- حالة: جاهز للتسجيل -->
+    <div class="state" id="state-idle">
+      <div class="mic-stage">
+        <button type="button" class="mic-btn" id="recBtn" aria-label="ابدأ التسجيل">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.93V20H9a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-2.07A7 7 0 0 0 19 11Z"/></svg>
+        </button>
+        <p class="hint" id="idleHint">اضغط للبدء بتسجيل تعليق صوتي</p>
+      </div>
+    </div>
+
+    <!-- حالة: جارٍ التسجيل -->
+    <div class="state" id="state-recording">
+      <div class="mic-stage">
+        <button type="button" class="mic-btn rec" id="stopBtn" aria-label="إيقاف التسجيل">
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>
+        </button>
+        <p class="timer" id="timerLabel">00:00</p>
+        <p class="hint">جارٍ التسجيل الآن... اضغط للإيقاف</p>
+      </div>
+    </div>
+
+    <!-- حالة: معاينة قبل الإرسال -->
+    <div class="state" id="state-preview">
+      <div class="preview-box">
+        <audio id="previewAudio" controls></audio>
+        <textarea id="noteInput" placeholder="ملاحظة نصية مع التسجيل (اختياري)..."></textarea>
+        <div class="btn-row">
+          <button type="button" class="btn secondary" id="rerecordBtn">إعادة التسجيل</button>
+          <button type="button" class="btn primary" id="sendBtn">إرسال التعليق</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- حالة: جارٍ الرفع -->
+    <div class="state" id="state-uploading">
+      <p class="msg-title">جارٍ إرسال التسجيل...</p>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <p class="progress-label" id="progressLabel">0%</p>
+    </div>
+
+    <!-- حالة: تعذّر الوصول للمايك -->
+    <div class="state" id="state-micerror">
+      <div class="icon-circle err">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l18 18M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-5.6-1.5M9 9v2a3 3 0 0 0 .4 1.5"/><path d="M19 11a7 7 0 0 1-7 7M5 11a7 7 0 0 0 2.3 5.2M12 18v2"/></svg>
+      </div>
+      <p class="msg-title">تعذّر الوصول إلى المايكروفون</p>
+      <p class="msg-body" id="micErrorMsg">تأكد أنك سمحت لهذه الصفحة باستخدام المايكروفون من إعدادات المتصفح، ثم أعد المحاولة.</p>
+      <div class="btn-row">
+        <button type="button" class="btn primary" id="micRetryBtn">إعادة المحاولة</button>
+      </div>
+    </div>
+
+    <!-- حالة: فشل الإرسال (مع الاحتفاظ بالتسجيل) -->
+    <div class="state" id="state-senderror">
+      <div class="icon-circle err">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
+      </div>
+      <p class="msg-title">تعذّر إرسال التسجيل</p>
+      <p class="msg-body" id="sendErrorMsg">تحقق من اتصال الإنترنت وحاول مرة أخرى. التسجيل محفوظ ولن تحتاج لإعادة تسجيله.</p>
+      <div class="btn-row">
+        <button type="button" class="btn secondary" id="discardBtn">تسجيل جديد</button>
+        <button type="button" class="btn primary" id="retrySendBtn">إعادة المحاولة</button>
+      </div>
+    </div>
+
+    <!-- حالة: نجح الإرسال -->
+    <div class="state" id="state-success">
+      <div class="icon-circle ok">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <p class="msg-title">تم إرسال التعليق بنجاح</p>
+      <p class="msg-body">يمكنك إغلاق هذه النافذة والرجوع إلى سواعد لون، أو تسجيل تعليق آخر.</p>
+      <div class="btn-row">
+        <button type="button" class="btn secondary" id="recordAnotherBtn">تسجيل آخر</button>
+        <button type="button" class="btn primary" id="closeBtn">إغلاق النافذة</button>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="footer-note">سواعد لون للصيانة العامة — صفحة تسجيل صوتي مستقلة</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var qp = new URLSearchParams(window.location.search);
+  var BASE = qp.get('base') || '';
+  var REQUEST_ID = qp.get('requestId') || '';
+  var AUTH_CODE = qp.get('code') || '';
+  var AUTH_PASSWORD = qp.get('password') || '';
+  var AUTH_ADMIN_NAME = qp.get('adminName') || '';
+  var CTX_CUSTOMER = qp.get('customerName') || '';
+  var CTX_SERVICE = qp.get('service') || '';
+
+  var hasAuth = !!AUTH_CODE || !!AUTH_PASSWORD;
+  var valid = !!BASE && !!REQUEST_ID && hasAuth;
+
+  var states = {};
+  ['invalid', 'idle', 'recording', 'preview', 'uploading', 'micerror', 'senderror', 'success'].forEach(function (k) {
+    states[k] = document.getElementById('state-' + k);
+  });
+  function showState(name) {
+    Object.keys(states).forEach(function (k) {
+      states[k].className = (k === name) ? 'state active' : 'state';
+    });
+  }
+
+  if (!valid) {
+    showState('invalid');
+    return;
+  }
+
+  var reqBox = document.getElementById('reqBox');
+  var reqRid = document.getElementById('reqRid');
+  var reqCtx = document.getElementById('reqCtx');
+  reqRid.textContent = REQUEST_ID;
+  var ctxParts = [];
+  if (CTX_CUSTOMER) ctxParts.push(CTX_CUSTOMER);
+  if (CTX_SERVICE) ctxParts.push(CTX_SERVICE);
+  if (ctxParts.length) {
+    reqCtx.textContent = ctxParts.join(' — ');
+    reqBox.hidden = false;
+  } else {
+    reqBox.hidden = true;
+  }
+
+  function apiUrl(action, params) {
+    var usp = new URLSearchParams();
+    usp.set('action', action);
+    Object.keys(params || {}).forEach(function (k) {
+      usp.set(k, params[k]);
+    });
+    return BASE + (BASE.indexOf('?') === -1 ? '?' : '&') + usp.toString();
+  }
+
+  function authParams() {
+    if (AUTH_CODE) return { code: AUTH_CODE };
+    return { password: AUTH_PASSWORD, adminName: AUTH_ADMIN_NAME || 'المدير' };
+  }
+
+  function makeUploadId() {
+    if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+    return 'u' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  }
+
+  // ---------------- التسجيل ----------------
+
+  var mediaStream = null;
+  var mediaRecorder = null;
+  var recordedChunks = [];
+  var recordedBlob = null;
+  var recordedMime = 'audio/webm';
+  var timerStart = 0;
+  var timerHandle = null;
+
+  var MIME_CANDIDATES = [
+    'audio/webm;codecs=opus', 'audio/webm',
+    'audio/mp4;codecs=mp4a.40.2', 'audio/mp4',
+    'audio/ogg;codecs=opus', 'audio/ogg'
+  ];
+
+  function pickMime() {
+    if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
+    for (var i = 0; i < MIME_CANDIDATES.length; i++) {
+      if (MediaRecorder.isTypeSupported(MIME_CANDIDATES[i])) return MIME_CANDIDATES[i];
+    }
+    return '';
+  }
+
+  function fmtTime(sec) {
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function startTimer() {
+    timerStart = Date.now();
+    var label = document.getElementById('timerLabel');
+    timerHandle = setInterval(function () {
+      label.textContent = fmtTime(Math.floor((Date.now() - timerStart) / 1000));
+    }, 250);
+  }
+  function stopTimer() {
+    if (timerHandle) clearInterval(timerHandle);
+    timerHandle = null;
+  }
+
+  function startRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showMicError('هذا المتصفح لا يدعم التسجيل الصوتي. جرّب فتح الصفحة بمتصفح حديث (كروم أو سفاري).');
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      mediaStream = stream;
+      recordedChunks = [];
+      var chosenMime = pickMime();
+      try {
+        mediaRecorder = chosenMime ? new MediaRecorder(stream, { mimeType: chosenMime }) : new MediaRecorder(stream);
+      } catch (e) {
+        mediaRecorder = new MediaRecorder(stream);
+      }
+      recordedMime = (mediaRecorder.mimeType || chosenMime || 'audio/webm').split(';')[0];
+      mediaRecorder.ondataavailable = function (e) {
+        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+      };
+      mediaRecorder.onstop = function () {
+        recordedBlob = new Blob(recordedChunks, { type: recordedMime });
+        mediaStream.getTracks().forEach(function (t) { t.stop(); });
+        mediaStream = null;
+        showPreview();
+      };
+      mediaRecorder.start();
+      showState('recording');
+      startTimer();
+    }).catch(function (err) {
+      var name = err && err.name;
+      var msg = 'تأكد أنك سمحت لهذه الصفحة باستخدام المايكروفون من إعدادات المتصفح، ثم أعد المحاولة.';
+      if (name === 'NotFoundError') msg = 'لم يتم العثور على مايكروفون بهذا الجهاز.';
+      if (name === 'NotAllowedError' || name === 'SecurityError') msg = 'تم رفض إذن المايكروفون. افتح إعدادات الموقع بالمتصفح واسمح باستخدام المايكروفون، ثم أعد المحاولة.';
+      showMicError(msg);
+    });
+  }
+
+  function stopRecording() {
+    stopTimer();
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  }
+
+  function showPreview() {
+    var audioEl = document.getElementById('previewAudio');
+    audioEl.src = URL.createObjectURL(recordedBlob);
+    document.getElementById('noteInput').value = '';
+    showState('preview');
+  }
+
+  function showMicError(msg) {
+    document.getElementById('micErrorMsg').textContent = msg;
+    showState('micerror');
+  }
+
+  function resetToIdle() {
+    recordedChunks = [];
+    recordedBlob = null;
+    showState('idle');
+  }
+
+  // ---------------- الإرسال ----------------
+
+  var CHUNK_SIZE = 12000;
+  var pendingUploadId = null;
+
+  function setProgress(pct, label) {
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = label;
+  }
+
+  function sendComment() {
+    var note = document.getElementById('noteInput').value.trim();
+    showState('uploading');
+    setProgress(2, 'جارٍ التحضير...');
+
+    var reader = new FileReader();
+    reader.onload = function () {
+      var dataUrl = reader.result;
+      var base64 = String(dataUrl).split(',')[1] || '';
+      var uploadId = pendingUploadId || makeUploadId();
+      pendingUploadId = uploadId;
+      var total = Math.max(1, Math.ceil(base64.length / CHUNK_SIZE));
+      var index = 0;
+
+      function uploadNext() {
+        if (index >= total) {
+          finalize(uploadId, note);
+          return;
+        }
+        var part = base64.substring(index * CHUNK_SIZE, (index + 1) * CHUNK_SIZE);
+        setProgress(5 + Math.round((index / total) * 80), 'جارٍ الرفع ' + (index + 1) + ' / ' + total);
+        fetch(apiUrl('uploadCommentAudioChunk', { uploadId: uploadId, index: index, total: total, data: part }))
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (!res.success) {
+              showSendError(res.error || 'تعذر رفع التسجيل');
+              return;
+            }
+            index += 1;
+            uploadNext();
+          })
+          .catch(function () {
+            showSendError('تعذر الاتصال بالخادم أثناء الرفع. تحقق من الإنترنت وحاول مرة أخرى.');
+          });
+      }
+      uploadNext();
+    };
+    reader.onerror = function () {
+      showSendError('تعذر تحضير التسجيل للإرسال.');
+    };
+    reader.readAsDataURL(recordedBlob);
+  }
+
+  function finalize(uploadId, note) {
+    setProgress(90, 'جارٍ الحفظ...');
+    var params = Object.assign({
+      requestId: REQUEST_ID,
+      uploadId: uploadId,
+      mime: recordedMime,
+      text: note || ''
+    }, authParams());
+    fetch(apiUrl('finalizeComment', params))
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res.success) {
+          showSendError(res.error || 'تعذر حفظ التعليق');
+          return;
+        }
+        setProgress(100, 'تم');
+        pendingUploadId = null;
+        notifyOpener();
+        showState('success');
+      })
+      .catch(function () {
+        showSendError('تعذر الاتصال بالخادم أثناء الحفظ. حاول مرة أخرى.');
+      });
+  }
+
+  function showSendError(msg) {
+    document.getElementById('sendErrorMsg').textContent = msg;
+    showState('senderror');
+  }
+
+  function notifyOpener() {
+    try {
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage({ type: 'sl-comment-sent', requestId: REQUEST_ID }, '*');
+      }
+    } catch (e) { /* يتم تجاهل أي خطأ هنا - الإشعار تحسين إضافي فقط وليس ضروريًا لنجاح العملية */ }
+  }
+
+  // ---------------- ربط الأزرار ----------------
+
+  document.getElementById('recBtn').addEventListener('click', startRecording);
+  document.getElementById('stopBtn').addEventListener('click', stopRecording);
+  document.getElementById('rerecordBtn').addEventListener('click', function () {
+    recordedBlob = null;
+    showState('idle');
+  });
+  document.getElementById('sendBtn').addEventListener('click', sendComment);
+  document.getElementById('micRetryBtn').addEventListener('click', function () { showState('idle'); });
+  document.getElementById('discardBtn').addEventListener('click', function () {
+    pendingUploadId = null;
+    resetToIdle();
+  });
+  document.getElementById('retrySendBtn').addEventListener('click', sendComment);
+  document.getElementById('recordAnotherBtn').addEventListener('click', function () {
+    pendingUploadId = null;
+    resetToIdle();
+  });
+  document.getElementById('closeBtn').addEventListener('click', function () {
+    window.close();
+  });
+
+  showState('idle');
+})();
+</script>
+</body>
+</html>
